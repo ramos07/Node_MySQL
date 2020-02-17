@@ -1,0 +1,23 @@
+{
+  "name": "node-mysql",
+  "version": "1.0.0",
+  "description": "Using MySQL with Node.js",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramos07/Node_MySQL.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ramos07/Node_MySQL/issues"
+  },
+  "homepage": "https://github.com/ramos07/Node_MySQL#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}
