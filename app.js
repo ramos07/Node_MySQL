@@ -1,7 +1,17 @@
 const express = require('express');
 const mysql = require('mysql');
+const bodyParser = require('body-parser');
+const ejs = require('ejs');
 
 const app = express();
+
+// EJS
+app.set('view engine', 'ejs');
+app.engine('ejs', ejs.renderFile);
+
+//Body parser
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 
 
 // Create a connection
@@ -12,13 +22,73 @@ const db = mysql.createConnection({
     database: 'nodemysql'
 });
 
-// Connect
+// Connect to MySQL database
 db.connect((error) => {
     if(error){
         console.log(error)
     };
-
     console.log('MySQL connected ...');
+});
+
+// Home Page 
+app.get('/', (req, res) => {
+    //Query to  all the vehicles from the MySQL database
+    let sql = 'SELECT * FROM vehicle'; 
+    let query = db.query(sql, (err, data) => {
+        if(err) throw err;
+        console.log(data);
+        res.render('index', {
+            results: data,
+        });
+
+    });
+    //res.send('connected');
+});
+
+// Add a new vehicle route
+app.get('/addvehicle', (req, res) => {
+    res.render('addvehicle'); //render the page addvehicle.ejs
+});
+
+// Delete a vehicle page
+app.get('/deletevehicle', (req, res) => {
+    //Query to all the vehicles from the MySQL database
+    let sql = 'SELECT * FROM vehicle';
+    // Execute the query then proceed with a callback function
+    let query = db.query(sql, (err, data) => {
+        if(err) throw err; //Error handling
+        //Render the page deletevehicle.ejs and pass in the JSON data along with it.
+        res.render('deletevehicle', {
+            results: data,
+        });
+    });
+});
+
+// Insert new vehicle into DB
+app.post('/new_vehicle', (req, res, next) => {
+    let vehicle = {
+        year,
+        make,
+        model,
+        color
+    } = req.body;
+    let sql = 'INSERT INTO vehicle SET ?';
+    let query = db.query(sql, vehicle, (err, result) => {
+        if(err) throw err;
+        console.log(result);
+    });
+    res.redirect('/addvehicle');
+});
+
+//Delete a vehicle from DB
+app.post('/delete_vehicle', (req, res) => {
+    let vehicleID = req.body.selectpicker;
+    let sql = `DELETE FROM vehicle WHERE id = ${vehicleID}`;
+    let query = db.query(sql, (err, result) => {
+        if(err) throw err;
+        console.log(result);
+        res.redirect('/deletevehicle');
+    });
 });
 
 // Create DB
@@ -31,92 +101,17 @@ app.get('/createdb', (req, res) => {
     });
 });
 
-// Create table
-app.get('/createpoststable', (req, res) => {
-    let sql = 'CREATE TABLE posts (id int AUTO_INCREMENT, title VARCHAR(255), body VARCHAR(255), PRIMARY KEY (id))';
+// Create vehicles table
+app.get('/createvehiclestable', (req, res) => {
+    let sql = 'CREATE TABLE vehicle (id int AUTO_INCREMENT, year int, make VARCHAR(50), model VARCHAR(50), color VARCHAR(50), PRIMARY KEY (id))';
     db.query(sql, (error, result) => {
         if(error){
             console.log(error);
         }
         console.log(result);
-        res.send('Posts table created ... ');
+        res.redirect('/');
     });
 });
-
-// Insert post 1
-app.get('/addpost1', (req, res) => {
-    let post = {title: 'Post One', body: 'This is post number 1'};
-    let sql = 'INSERT INTO posts SET ?';
-    let query = db.query(sql, post, (err, result) =>{
-        if(err) throw err;
-        console.log(result);
-        res.send('Post 1 added ...');
-    });
-});
-
-// Insert post 2
-app.get('/addpost2', (req, res) => {
-    let post = {title: 'Post Two', body: 'This is post number 2'};
-    let sql = 'INSERT INTO posts SET ?';
-    let query = db.query(sql, post, (err, result) =>{
-        if(err) throw err;
-        console.log(result);
-        res.send('Post 2 added ...');
-    });
-});
-
-// Select posts
-app.get('/getposts', (req, res) => {
-    let sql = 'SELECT * FROM posts';
-    let query = db.query(sql, (err, results) => {
-        if(err) throw err;
-        console.log(results);
-        res.send('Posts fetched...');
-    });
-}); 
-
-// Select single post
-app.get('/getposts/:id', (req, res) => {
-    let sql = `SELECT * FROM posts WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
-        if(err) throw err;
-        console.log(result);
-        res.send('Post fetched...');
-    });
-});
-
-// Update post
-app.get('/updatepost/:id', (req, res) => {
-    let newTitle = 'Updated Title';
-    let sql = `UPDATE posts SET title = '${newTitle}' WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
-        if(err) throw err;
-        console.log(result);
-        res.send('Post updated...');
-    });
-});
-
-// Delete post
-app.get('/deletepost/:id', (req, res) => {
-    let newTitle = 'Updated Title';
-    let sql = `DELETE FROM posts WHERE id = ${req.params.id}`;
-    let query = db.query(sql, (err, result) => {
-        if(err) throw err;
-        console.log(result);
-        res.send('Post deleted...');
-    });
-});
-
-
-
-
-
-
 
 const port = 3000;
-
-app.get('/', (req, res) => {
-    res.send('Running');
-});
-
 app.listen(port, () => console.log(`Server started on port ${port}`));
